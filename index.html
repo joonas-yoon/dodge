@@ -33,12 +33,21 @@
         x: canvas.width / 2,
         y: canvas.height / 2,
         deg: 0,
-        scale: 1.5
+        scale: 1.5,
+        timer: {
+            control: undefined
+        }
     };
     var game = {
         speed: 1,
         score: 0,
-        spawns: 20
+        spawns: canvas.width/50 * canvas.height/50,
+        timer: {
+            rubbles: undefined,
+            spawn: undefined,
+            score: undefined,
+            hud: undefined
+        }
     };
     var keypressed = {};
 
@@ -50,6 +59,13 @@
         var wid = canvas.width;
         var hei = canvas.height;
         return !(-wid * 0.1 <= x && x <= wid * 1.1) || !(-hei * 0.1 <= y && y <= hei * 1.1);
+    }
+
+    function isIntersection(player, obj) {
+        return !(obj.x - obj.rad > player.x + player.scale ||
+            obj.x + obj.rad < player.x - player.scale ||
+            obj.y - obj.rad > player.y + player.scale ||
+            obj.y + obj.rad < player.y - player.scale);
     }
     
     // x: [0, 1], y: [0, 1]; the 1 means width/height
@@ -133,10 +149,74 @@
         player.y = Math.max(0, Math.min(player.y, canvas.height));
     }
 
-    for(var i=0; i < (canvas.width * canvas.height) / 1000; ++i){
-        rubbles.push(createRubble(Math.random(), Math.random()));
+    function startGame() {
+        init();
+
+        // set initial rubbles
+        for(var i=0; i < game.spawns * 3; ++i){
+            rubbles.push(createRubble(Math.random(), Math.random()));
+        }
+        // set ready next rubbles
+        spawnRubblesFromOutside(game.spawns);
     }
-    spawnRubblesFromOutside(game.spawns);
+
+    function init() {
+        clearInterval(game.timer.rubbles);
+        clearInterval(game.timer.spawn);
+        clearInterval(game.timer.score);
+        clearInterval(game.timer.hud);
+        clearInterval(player.timer.control);
+
+        // rubble state updates
+        game.timer.rubbles = setInterval(function(){
+            rubbles.forEach(function(v, idx){
+                moveRubble(v);
+                if (isIntersection(player, v)) {
+                    gameover();
+                }
+                if (isOutOfBound(v.x, v.y)) {
+                    rubbles.splice(idx, 1);
+                    // get 10 score as rubble deleted
+                    game.score += 10;
+                }
+            });
+        }, 10);
+
+        // player state updates
+        player.timer.control = setInterval(function(){
+            if (document.getElementById('ctype_a').checked) {
+                movePlayerTypeA();
+            } else {
+                movePlayerTypeB();
+            }
+        }, 20);
+
+        // spawn more rubbles for every 5 seconds
+        game.timer.spawn = setInterval(function(){
+            spawnRubblesFromOutside(game.spawns);
+            game.spawns += Math.random() * game.spawns / 10;
+            console.log(game.spawns);
+        }, 3 * 1000);
+
+        // get 100 score for every 1 second
+        game.timer.score = setInterval(function(){
+            game.score += 100;
+        }, 1000);
+        
+        // HUD updates
+        game.timer.hud = setInterval(function(){
+            document.getElementById('score').innerText = game.score || '0';
+        }, 10);
+    }
+
+    function gameover() {
+        clearInterval(game.timer.rubbles);
+        clearInterval(game.timer.spawn);
+        clearInterval(game.timer.score);
+        clearInterval(player.timer.control);
+
+        window.alert('Game Over\nScore: ' + game.score);
+    }
 
     document.addEventListener('keydown', function(evt){
         keypressed[evt.keyCode] = true;
@@ -147,7 +227,7 @@
     });
 
     // draw updates
-    setInterval(function(){
+    function drawCanvas(){
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         rubbles.forEach(function(v, i){
             ctx.beginPath();
@@ -166,45 +246,11 @@
             }
         });
         drawPlayer();
-    }, 10);
-    
-    // rubble state updates
-    setInterval(function(){
-        rubbles.forEach(function(v, idx){
-            moveRubble(v);
-            if (isOutOfBound(v.x, v.y)) {
-                rubbles.splice(idx, 1);
-                // get 10 score as rubble deleted
-                game.score += 10;
-            }
-        });
-    }, 10);
+        window.requestAnimationFrame(drawCanvas);
+    }
+    window.requestAnimationFrame(drawCanvas);
 
-    // player state updates
-    setInterval(function(){
-        if (document.getElementById('ctype_a').checked) {
-            movePlayerTypeA();
-        } else {
-            movePlayerTypeB();
-        }
-    }, 20);
-
-    // spawn more rubbles for every 5 seconds
-    setInterval(function(){
-        spawnRubblesFromOutside(game.spawns);
-        game.spawns += Math.random() * 2;
-        console.log(game);
-    }, 5 * 1000);
-
-    // get 100 score for every 1 second
-    setInterval(function(){
-        game.score += 100;
-    }, 1000);
-    
-    // HUD updates
-    setInterval(function(){
-        document.getElementById('score').innerText = game.score || '0';
-    }, 100);
+    startGame();
 
 </script>
 </html>
