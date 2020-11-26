@@ -25,3 +25,11 @@ canvas#game {
     margin: 0 auto;
     text-align: center;
 }
+
+.options {
+    position: absolute;
+    margin: 0.5rem;
+    color: #aaa;
+    right: 0.5rem;
+    top: 0.5rem;
+}
