@@ -5,9 +5,17 @@
     <link rel="stylesheet" href="site.css" />
 </head>
 <body>
-    <div class="options">
-        <input id="debug" type="checkbox" name="debug" value="1">
-        <label for="debug">debug</label>
+    <div class="options" style="text-align: right;">
+        <div>
+            <input id="debug" type="checkbox" name="debug" value="1">
+            <label for="debug">debug</label>
+        </div>
+        <div>
+            <input type="radio" id="ctype_a" name="ctype" value="a" checked>
+            <label for="ctype_a">Type A</label> &nbsp;
+            <input type="radio" id="ctype_b" name="ctype" value="b">
+            <label for="ctype_b">Type B</label>
+        </div> 
     </div>
     <div class="container">
         <canvas id="game" width="300" height="300"></canvas>
@@ -83,6 +91,35 @@
         ctx.closePath();
         ctx.restore();
     }
+    
+    function movePlayerTypeA() {
+        // left = 37, up = 38, right = 39, down = 40
+        var l = keypressed[37], u = keypressed[38], r = keypressed[39], d = keypressed[40];
+        var _ds = [[-1, 0, 1],[-2, 0, 2],[-3, 4, 3]];
+        player.deg = 45 * _ds[u^d?(u?0:2):1][l^r?(l?0:2):1] * Math.PI / 180;
+        
+        if (u) player.y -= 1.5;
+        if (d) player.y += 1.5;
+        if (l) player.x -= 1.5;
+        if (r) player.x += 1.5;
+
+        player.x = Math.max(0, Math.min(player.x, canvas.width));
+        player.y = Math.max(0, Math.min(player.y, canvas.height));
+    }
+    
+    function movePlayerTypeB() {
+        // left = 37, up = 38, right = 39, down = 40
+        var l = keypressed[37], u = keypressed[38], r = keypressed[39], d = keypressed[40];
+        if (l) player.deg -= 5 * Math.PI / 180; // 5 deg
+        if (r) player.deg += 5 * Math.PI / 180;
+        if (u || d) {
+            var d = rotatedXY(0, 2 * (u ? -1 : 1), player.deg);
+            player.x += d.x;
+            player.y += d.y;
+        }
+        player.x = Math.max(0, Math.min(player.x, canvas.width));
+        player.y = Math.max(0, Math.min(player.y, canvas.height));
+    }
 
     for(var i=0; i<10; ++i){
         rubbles.push(createRubble(Math.random(), Math.random()));
@@ -123,24 +160,13 @@
         rubbles.forEach(moveRubble);
     }, 100);
 
-    setInterval(function(){
-        console.log(player.deg);
-    }, 1000);
-
     // player state updates
     setInterval(function(){
-        // left = 37, up = 38, right = 39, down = 40
-        var l = keypressed[37], u = keypressed[38], r = keypressed[39], d = keypressed[40];
-        var _ds = [[-1, 0, 1],[-2, 0, 2],[-3, 4, 3]];
-        player.deg = 45 * _ds[u^d?(u?0:2):1][l^r?(l?0:2):1] * Math.PI / 180;
-        
-        if (u) player.y -= 1;
-        if (d) player.y += 1;
-        if (l) player.x -= 1;
-        if (r) player.x += 1;
-
-        player.x = Math.max(0, Math.min(player.x, canvas.width));
-        player.y = Math.max(0, Math.min(player.y, canvas.height));
+        if (document.getElementById('ctype_a').checked) {
+            movePlayerTypeA();
+        } else {
+            movePlayerTypeB();
+        }
     }, 20);
 
     // spawn 10 rubbles for every 10 seconds
