@@ -1,0 +1,27 @@
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    outline: 0;
+}
+
+body {
+    background: black;
+}
+
+canvas#game {
+    border: 1px solid rgba(255, 255, 255, .33);
+    margin: 0 auto;
+    background: black;
+}
+
+.container {
+    position: absolute;
+    top: calc(50vh - 150px);
+    left: calc(50% - 150px);
+    margin: 0 auto;
+    text-align: center;
+}
