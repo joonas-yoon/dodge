@@ -13,9 +13,11 @@ body {
 }
 
 canvas#game {
+    position: absolute;
     border: 1px solid rgba(255, 255, 255, .33);
     margin: 0 auto;
     background: black;
+    z-index: 1;
 }
 
 .container {
@@ -32,4 +34,20 @@ canvas#game {
     color: #aaa;
     right: 0.5rem;
     top: 0.5rem;
+}
+
+.hud {
+    position: absolute;
+    z-index: 5;
+    font-size: 8px;
+}
+
+.hud #score {
+    color: white;
+    font-family: monospace;
+    position: absolute;
+    padding: 5px;
+    text-align: right;
+    top: 0;
+    right: -300px;
 }
