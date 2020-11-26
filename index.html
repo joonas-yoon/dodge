@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Dodge</title>
-<link rel="stylesheet" href="site.css" />
+    <title>Dodge</title>
+    <link rel="stylesheet" href="site.css" />
 </head>
 <body>
     <div class="container">
@@ -22,17 +22,25 @@
     };
     var keypressed = {};
     
-    function createRubble() {
+    // x: [0, 1], y: [0, 1]; the 1 means width/height
+    function createRubble(x, y) {
         return {
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
+            x: x * canvas.width,
+            y: y * canvas.height,
             color: '#ffff66'
         };
     }
 
-    function moveRubble(r) {
-        r.x += (Math.random() * 2) - 1;
-        r.y += (Math.random() * 2) - 1;
+    function spawnRubblesFromOutside(num) {
+        for(var i=0; i<num; ++i) {
+            var x, y, rand = Math.random() < 0.5 ? 0 : 1;
+            if (Math.random() < 0.5) {
+                x = rand, y = Math.random();
+            } else {
+                x = Math.random(), y = rand;
+            }
+            rubbles.push(createRubble(x, y));
+        }
     }
     
     function rotatedXY(x, y, deg) {
@@ -40,6 +48,13 @@
             x: x * Math.cos(deg) - y * Math.sin(deg),
             y: x * Math.sin(deg) + y * Math.cos(deg)
         };
+    }
+
+    function moveRubble(r) {
+        var dx = player.x - r.x;
+        var dy = player.y - r.y;
+        r.x += Math.max(0.25, Math.abs(dx) / 200) * (dx < 0 ? -1 : 1);
+        r.y += Math.max(0.25, Math.abs(dy) / 200) * (dy < 0 ? -1 : 1);
     }
 
     function drawPlayer() {
@@ -58,7 +73,7 @@
     }
 
     for(var i=0; i<10; ++i){
-        rubbles.push(createRubble());
+        rubbles.push(createRubble(Math.random(), Math.random()));
     }
 
     document.addEventListener('keydown', function(evt){
@@ -78,6 +93,15 @@
             ctx.fillStyle = v.color;
             ctx.fill();
             ctx.closePath();
+
+            /* debug */
+            ctx.beginPath();
+            ctx.moveTo(v.x, v.y);
+            ctx.lineTo(player.x, player.y);
+            ctx.strokeStyle = 'rgba(255, 255, 255, .1)';
+            ctx.stroke();
+            ctx.closePath();
+            /* end debug */
         });
         drawPlayer();
     }, 10);
@@ -98,6 +122,11 @@
             player.y += d.y;
         }
     }, 20);
+
+    // spawn 10 rubbles for every 10 seconds
+    setInterval(function(){
+        spawnRubblesFromOutside(10);
+    }, 10 * 1000);
 
 </script>
 </html>
