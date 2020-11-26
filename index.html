@@ -118,8 +118,8 @@
         if (keypressed[39]) player.deg += 0.1;
         if (keypressed[38] || keypressed[40]) {
             var d = rotatedXY(0, keypressed[38] ? -2 : 2, player.deg);
-            player.x += d.x;
-            player.y += d.y;
+            if (0 <= player.x + d.x && player.x + d.x <= canvas.width) player.x += d.x;
+            if (0 <= player.y + d.y && player.y + d.y <= canvas.height) player.y += d.y;
         }
     }, 20);
 
