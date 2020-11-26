@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dodge</title>
+<link rel="stylesheet" href="site.css" />
+</head>
+<body>
+    <div class="container">
+        <canvas id="game" width="300" height="300"></canvas>
+    </div>
+</body>
+<script>
+    var canvas = document.getElementById("game");
+    var ctx = canvas.getContext("2d");
+
+    var rubbles = [];
+    
+    function createRubble() {
+        return {
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            color: '#ffff66'
+        };
+    }
+
+    function moveRubble(r) {
+        r.x += (Math.random() * 2) - 1;
+        r.y += (Math.random() * 2) - 1;
+    }
+
+    for(var i=0; i<10; ++i){
+        rubbles.push(createRubble());
+    }
+
+    setInterval(function(){
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        rubbles.forEach(function(v, i){
+            ctx.beginPath();
+            ctx.arc(v.x, v.y, 1.5, 0, 2 * Math.PI);
+            ctx.fillStyle = v.color;
+            ctx.fill();
+            ctx.closePath();
+        });
+    }, 10);
+    
+    setInterval(function(){
+        rubbles.forEach(moveRubble);
+    }, 100);
+</script>
+</html>
