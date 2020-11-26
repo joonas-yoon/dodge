@@ -5,6 +5,10 @@
     <link rel="stylesheet" href="site.css" />
 </head>
 <body>
+    <div class="options">
+        <input id="debug" type="checkbox" name="debug" value="1">
+        <label for="debug">debug</label>
+    </div>
     <div class="container">
         <canvas id="game" width="300" height="300"></canvas>
     </div>
@@ -20,7 +24,14 @@
         deg: 0,
         scale: 1.5
     };
+    var game = {
+        speed: 0.8
+    };
     var keypressed = {};
+
+    function isDebug() {
+        return document.getElementById('debug').checked;
+    }
     
     // x: [0, 1], y: [0, 1]; the 1 means width/height
     function createRubble(x, y) {
@@ -53,8 +64,9 @@
     function moveRubble(r) {
         var dx = player.x - r.x;
         var dy = player.y - r.y;
-        r.x += Math.max(0.25, Math.abs(dx) / 200) * (dx < 0 ? -1 : 1);
-        r.y += Math.max(0.25, Math.abs(dy) / 200) * (dy < 0 ? -1 : 1);
+        var d = Math.sqrt(dx * dx + dy * dy);
+        r.x += dx / d * game.speed;
+        r.y += dy / d * game.speed;
     }
 
     function drawPlayer() {
@@ -94,14 +106,14 @@
             ctx.fill();
             ctx.closePath();
 
-            /* debug */
-            ctx.beginPath();
-            ctx.moveTo(v.x, v.y);
-            ctx.lineTo(player.x, player.y);
-            ctx.strokeStyle = 'rgba(255, 255, 255, .1)';
-            ctx.stroke();
-            ctx.closePath();
-            /* end debug */
+            if (isDebug()) {
+                ctx.beginPath();
+                ctx.moveTo(v.x, v.y);
+                ctx.lineTo(player.x, player.y);
+                ctx.strokeStyle = 'rgba(255, 255, 255, .1)';
+                ctx.stroke();
+                ctx.closePath();
+            }
         });
         drawPlayer();
     }, 10);
@@ -111,16 +123,24 @@
         rubbles.forEach(moveRubble);
     }, 100);
 
+    setInterval(function(){
+        console.log(player.deg);
+    }, 1000);
+
     // player state updates
     setInterval(function(){
         // left = 37, up = 38, right = 39, down = 40
-        if (keypressed[37]) player.deg -= 0.1; // 10 deg
-        if (keypressed[39]) player.deg += 0.1;
-        if (keypressed[38] || keypressed[40]) {
-            var d = rotatedXY(0, keypressed[38] ? -2 : 2, player.deg);
-            if (0 <= player.x + d.x && player.x + d.x <= canvas.width) player.x += d.x;
-            if (0 <= player.y + d.y && player.y + d.y <= canvas.height) player.y += d.y;
-        }
+        var l = keypressed[37], u = keypressed[38], r = keypressed[39], d = keypressed[40];
+        var _ds = [[-1, 0, 1],[-2, 0, 2],[-3, 4, 3]];
+        player.deg = 45 * _ds[u^d?(u?0:2):1][l^r?(l?0:2):1] * Math.PI / 180;
+        
+        if (u) player.y -= 1;
+        if (d) player.y += 1;
+        if (l) player.x -= 1;
+        if (r) player.x += 1;
+
+        player.x = Math.max(0, Math.min(player.x, canvas.width));
+        player.y = Math.max(0, Math.min(player.y, canvas.height));
     }, 20);
 
     // spawn 10 rubbles for every 10 seconds
