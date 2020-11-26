@@ -14,6 +14,13 @@
     var ctx = canvas.getContext("2d");
 
     var rubbles = [];
+    var player = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        deg: 0,
+        scale: 1.5
+    };
+    var keypressed = {};
     
     function createRubble() {
         return {
@@ -27,11 +34,42 @@
         r.x += (Math.random() * 2) - 1;
         r.y += (Math.random() * 2) - 1;
     }
+    
+    function rotatedXY(x, y, deg) {
+        return {
+            x: x * Math.cos(deg) - y * Math.sin(deg),
+            y: x * Math.sin(deg) + y * Math.cos(deg)
+        };
+    }
+
+    function drawPlayer() {
+        ctx.save();
+        ctx.beginPath();
+        var p1 = rotatedXY(0, -4 * player.scale, player.deg);
+        var p2 = rotatedXY(2 * player.scale, 2 * player.scale, player.deg);
+        var p3 = rotatedXY(-2 * player.scale, 2 * player.scale, player.deg);
+        ctx.moveTo(player.x + p1.x, player.y + p1.y);
+        ctx.lineTo(player.x + p2.x, player.y + p2.y);
+        ctx.lineTo(player.x + p3.x, player.y + p3.y);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+        ctx.closePath();
+        ctx.restore();
+    }
 
     for(var i=0; i<10; ++i){
         rubbles.push(createRubble());
     }
 
+    document.addEventListener('keydown', function(evt){
+        keypressed[evt.keyCode] = true;
+    });
+    
+    document.addEventListener('keyup', function(evt){
+        delete keypressed[evt.keyCode];
+    });
+
+    // draw updates
     setInterval(function(){
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         rubbles.forEach(function(v, i){
@@ -41,10 +79,25 @@
             ctx.fill();
             ctx.closePath();
         });
+        drawPlayer();
     }, 10);
     
+    // rubble state updates
     setInterval(function(){
         rubbles.forEach(moveRubble);
     }, 100);
+
+    // player state updates
+    setInterval(function(){
+        // left = 37, up = 38, right = 39, down = 40
+        if (keypressed[37]) player.deg -= 0.1; // 10 deg
+        if (keypressed[39]) player.deg += 0.1;
+        if (keypressed[38] || keypressed[40]) {
+            var d = rotatedXY(0, keypressed[38] ? -2 : 2, player.deg);
+            player.x += d.x;
+            player.y += d.y;
+        }
+    }, 20);
+
 </script>
 </html>
